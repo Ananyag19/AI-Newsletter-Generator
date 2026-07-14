@@ -1,0 +1,534 @@
+/* ============================================================
+   Wire Desk — token system
+   Ink:      #14213D  (masthead, primary UI ground)
+   Paper:    #FBF9F4  (content cards / proof sheet)
+   Canvas:   #EEF0F2  (page background, cool not cream)
+   Mustard:  #E8A33D  (stamp / accent — the editor's pencil)
+   Ink text: #1B1B1F
+   Slate:    #5B6472  (secondary text)
+   Rule:     #D8DBE0  (hairlines)
+   ============================================================ */
+
+:root {
+  --ink: #14213D;
+  --ink-deep: #0D1730;
+  --paper: #FBF9F4;
+  --canvas: #EEF0F2;
+  --mustard: #E8A33D;
+  --mustard-deep: #C77F1F;
+  --text: #1B1B1F;
+  --slate: #5B6472;
+  --rule: #D8DBE0;
+  --error: #B3402C;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+/* ---------- Masthead ---------- */
+.masthead {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 2.75rem 1.5rem 2.25rem;
+  border-bottom: 4px solid var(--mustard);
+}
+
+.masthead-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  color: var(--mustard);
+}
+
+.masthead h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  margin: 0.35rem 0 0.4rem;
+  letter-spacing: -0.01em;
+}
+
+.subhead {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.05rem;
+  color: #C7CDE0;
+  margin: 0;
+}
+
+/* ---------- Pipeline / signature element ---------- */
+.pipeline {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.1rem 1.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.pipeline-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 280px;
+}
+
+.stage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  position: relative;
+  padding-right: 1rem;
+}
+
+.stage:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 6px;
+  width: 100%;
+  height: 2px;
+  background: var(--rule);
+  z-index: 0;
+}
+
+.stage-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--rule);
+  z-index: 1;
+  flex-shrink: 0;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.stage-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--slate);
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+.stage.active .stage-dot {
+  background: var(--mustard);
+  border-color: var(--mustard-deep);
+}
+.stage.active .stage-label { color: var(--ink); font-weight: 600; }
+
+.stage.done .stage-dot {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.stage.done .stage-label { color: var(--ink); }
+
+.stamp {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  padding: 0.35rem 0.7rem;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  transform: rotate(-2deg);
+  white-space: nowrap;
+}
+
+.stamp.working {
+  border-color: var(--mustard-deep);
+  color: var(--mustard-deep);
+}
+
+.stamp.error {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+/* ---------- Desk layout ---------- */
+.desk {
+  max-width: 1180px;
+  margin: 1.75rem auto 3rem;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 1.3fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .desk { grid-template-columns: minmax(0, 1fr); }
+}
+
+.intake, .controls, .proof {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 1.5rem;
+  min-width: 0;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+
+/* ---------- Tabs ---------- */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 1rem;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--slate);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab.active {
+  color: var(--ink);
+  border-bottom-color: var(--mustard);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.field-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--slate);
+  margin: 0.9rem 0 0.35rem;
+}
+
+.field-label:first-child { margin-top: 0; }
+
+textarea, input[type="text"], input[type="number"], select {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--rule);
+  background: #fff;
+  resize: vertical;
+}
+
+textarea:focus, input:focus, select:focus, button:focus-visible {
+  outline: 2px solid var(--mustard-deep);
+  outline-offset: 1px;
+}
+
+.dropzone {
+  border: 2px dashed var(--rule);
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--slate);
+  cursor: pointer;
+  font-size: 0.88rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.dropzone.drag-over {
+  border-color: var(--mustard-deep);
+  background: #FFF6E8;
+}
+
+.source-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.source-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  background: var(--canvas);
+  border-left: 3px solid var(--ink);
+  font-size: 0.82rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.source-item.has-error { border-left-color: var(--error); }
+
+.source-item .source-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-item .source-remove {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  color: var(--slate);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+
+/* ---------- Controls ---------- */
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.9rem 0 0.5rem;
+  font-size: 0.88rem;
+}
+
+.checkbox-row input { width: auto; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  font-weight: 600;
+  border: none;
+  padding: 0.65rem 1.1rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+  letter-spacing: 0.01em;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+  width: 100%;
+  margin-top: 1.4rem;
+  padding: 0.8rem 1.1rem;
+}
+
+.btn-primary:hover { background: var(--ink-deep); }
+.btn-primary:disabled { background: var(--slate); cursor: not-allowed; }
+
+.btn-secondary {
+  background: var(--mustard);
+  color: var(--ink-deep);
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+.btn-secondary:hover { background: var(--mustard-deep); color: var(--paper); }
+
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--rule);
+  color: var(--slate);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+.btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+
+.hint {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--slate);
+  margin-top: 0.75rem;
+  min-height: 1.2em;
+}
+
+.hint.error { color: var(--error); }
+
+/* ---------- Proof sheet ---------- */
+.proof-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.proof-actions { display: flex; gap: 0.5rem; }
+
+.proof-sheet {
+  margin-top: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--rule);
+  background: #fff;
+  min-height: 320px;
+  font-family: var(--font-display);
+}
+
+.proof-sheet .placeholder {
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--slate);
+}
+
+.proof-subject {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mustard-deep);
+  margin-bottom: 0.5rem;
+}
+
+.proof-sheet h3.headline {
+  font-size: 1.65rem;
+  font-weight: 700;
+  margin: 0 0 0.6rem;
+  line-height: 1.15;
+}
+
+.proof-sheet .intro {
+  font-style: italic;
+  color: #34363E;
+  font-size: 1.05rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.proof-sheet .newsletter-section {
+  margin-bottom: 1.1rem;
+}
+
+.proof-sheet .newsletter-section h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+}
+
+.proof-sheet .newsletter-section p {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin: 0;
+  color: var(--text);
+}
+
+.proof-sheet .newsletter-section .src-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--slate);
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.proof-sheet .cta {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--slate);
+}
+
+.footer code {
+  background: var(--paper);
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--rule);
+}
+
+.admin-toggle {
+  background: none;
+  border: 1px solid var(--rule);
+  color: var(--slate);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+
+.admin-toggle:hover { border-color: var(--ink); color: var(--ink); }
+
+/* ---------- Admin panel ---------- */
+.admin-panel {
+  max-width: 420px;
+  margin: 0 auto 2.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+}
+
+.admin-panel h3 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  margin: 0 0 0.3rem;
+}
+
+.admin-note {
+  font-size: 0.78rem;
+  color: var(--slate);
+  margin: 0 0 0.75rem;
+}
+
+.admin-token-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-token-row input { flex: 1; }
+.admin-token-row .btn { white-space: nowrap; margin-top: 0; }
+
+#admin-controls {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+#admin-controls select { margin-bottom: 0.75rem; }
+#admin-controls .btn-primary { margin-top: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

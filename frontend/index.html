@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wire Desk — AI Newsletter Writer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <span class="eyebrow">AI NEWSLETTER WRITER</span>
+    <h1>The Wire Desk</h1>
+    <p class="subhead">Feed it links, files, and notes. It files the copy.</p>
+  </div>
+</header>
+
+<div class="pipeline" id="pipeline" aria-label="Processing pipeline status">
+  <div class="pipeline-track">
+    <div class="stage" data-stage="extract">
+      <span class="stage-dot"></span>
+      <span class="stage-label">Extract</span>
+    </div>
+    <div class="stage" data-stage="clean">
+      <span class="stage-dot"></span>
+      <span class="stage-label">Clean</span>
+    </div>
+    <div class="stage" data-stage="summarize">
+      <span class="stage-dot"></span>
+      <span class="stage-label">Summarize</span>
+    </div>
+    <div class="stage" data-stage="draft">
+      <span class="stage-dot"></span>
+      <span class="stage-label">Draft</span>
+    </div>
+  </div>
+  <div class="stamp" id="stamp">READY</div>
+</div>
+
+<main class="desk">
+
+  <!-- INPUT COLUMN -->
+  <section class="intake" aria-label="Content intake">
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="urls" role="tab">Links</button>
+      <button class="tab" data-tab="files" role="tab">Files</button>
+      <button class="tab" data-tab="notes" role="tab">Notes</button>
+    </div>
+
+    <div class="tab-panel active" data-panel="urls">
+      <label class="field-label" for="url-input">Article URLs, one per line</label>
+      <textarea id="url-input" rows="6" placeholder="https://example.com/story-one&#10;https://example.com/story-two"></textarea>
+      <button class="btn btn-secondary" id="fetch-urls-btn">Fetch &amp; Extract</button>
+    </div>
+
+    <div class="tab-panel" data-panel="files">
+      <label class="field-label" for="file-input">Upload PDF, DOCX, or TXT</label>
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="file-input" accept=".pdf,.docx,.txt,.md" multiple hidden />
+        <span>Drop files here or click to browse</span>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="notes">
+      <label class="field-label" for="notes-input">Manual notes / raw text</label>
+      <textarea id="notes-input" rows="8" placeholder="Paste bullet points, quotes, or raw notes here. These are treated as high priority."></textarea>
+    </div>
+
+    <div class="source-list" id="source-list" aria-label="Extracted sources"></div>
+  </section>
+
+  <!-- CONTROL COLUMN -->
+  <section class="controls" aria-label="Newsletter settings">
+    <h2 class="section-title">Edition settings</h2>
+
+    <label class="field-label" for="title-input">Newsletter title / theme</label>
+    <input type="text" id="title-input" placeholder="e.g. This Week in Climate Tech" />
+
+    <label class="field-label" for="audience-input">Audience</label>
+    <input type="text" id="audience-input" placeholder="e.g. startup founders, alumni, product managers" />
+
+    <label class="field-label" for="tone-select">Tone</label>
+    <select id="tone-select">
+      <option value="professional">Professional</option>
+      <option value="casual">Casual</option>
+      <option value="witty">Witty</option>
+      <option value="enthusiastic">Enthusiastic</option>
+      <option value="concise">Concise</option>
+      <option value="storytelling">Storytelling</option>
+    </select>
+
+    <label class="field-label" for="sections-input">Number of sections</label>
+    <input type="number" id="sections-input" value="4" min="1" max="10" />
+
+    <label class="checkbox-row">
+      <input type="checkbox" id="cta-toggle" checked />
+      <span>Include call-to-action</span>
+    </label>
+
+    <input type="text" id="cta-input" placeholder="e.g. subscribe to our podcast (optional)" />
+
+    <button class="btn btn-primary" id="generate-btn">Generate Newsletter</button>
+    <p class="hint" id="status-hint"></p>
+  </section>
+
+  <!-- OUTPUT COLUMN -->
+  <section class="proof" aria-label="Newsletter draft output">
+    <div class="proof-header">
+      <h2 class="section-title">Proof</h2>
+      <div class="proof-actions">
+        <button class="btn btn-ghost" id="copy-btn">Copy Markdown</button>
+        <button class="btn btn-ghost" id="download-btn">Download .md</button>
+      </div>
+    </div>
+    <article class="proof-sheet" id="proof-sheet">
+      <p class="placeholder">Your drafted newsletter will appear here once generated.</p>
+    </article>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>Backend: <code id="backend-url-display">http://localhost:8000</code></span>
+  <button class="admin-toggle" id="admin-toggle" aria-expanded="false">⚙ Admin</button>
+</footer>
+
+<div class="admin-panel" id="admin-panel" hidden aria-label="Admin settings">
+  <h3>Admin — AI Provider</h3>
+  <p class="admin-note">Only visible/editable with the correct admin token. Regular users never see this.</p>
+
+  <label class="field-label" for="admin-token-input">Admin token</label>
+  <div class="admin-token-row">
+    <input type="password" id="admin-token-input" placeholder="Enter admin token" autocomplete="off" />
+    <button class="btn btn-secondary" id="admin-unlock-btn">Unlock</button>
+  </div>
+
+  <div id="admin-controls" hidden>
+    <label class="field-label" for="provider-select">Active provider</label>
+    <select id="provider-select">
+      <option value="groq">Groq</option>
+      <option value="gemini">Gemini</option>
+      <option value="qwen">Qwen</option>
+      <option value="grok_drive">Grok (via Google Drive — slow, polling)</option>
+    </select>
+    <button class="btn btn-primary" id="admin-save-btn">Save</button>
+  </div>
+
+  <p class="hint" id="admin-hint"></p>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
